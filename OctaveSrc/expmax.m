@@ -12,16 +12,25 @@ function expmax
   mu1 = [2 2];
   sigma1 = [5 -4; -4 6] / 10;
   
-  mu2 = [3 2.5];
+  mu2 = [4 2.5];
   sigma2 = [5 4; 4 6] / 10;
-
+  
+  mu3 = [0 1.5];
+  sigma3 = [5 4; 4 6] / 10;
+  
+  cmap = repmat([1.0 0.0 0.0; 0.0 1.0 0.0; 0.0 0.0 1.0], 100*100, 1);
+  colormap(cmap);
+  # disp(cmap);
+  
   [X, Y] = meshgrid (linspace (-1, 5, 100));
   XY = [X(:) Y(:)];
   Z1 = mvnpdf (XY, mu1, sigma1);
   Z1 = reshape (Z1, size (X));
-  # contour (X, Y, Z1);
   
   Z2 = mvnpdf (XY, mu2, sigma2);
   Z2 = reshape (Z2, size (X));
-  contour ([X X], [Y Y], [Z1 Z2]);
+  
+  Z3 = mvnpdf (XY, mu3, sigma3);
+  Z3 = reshape (Z3, size (X));
+  contour ([X; X; X], [Y; Y; Y], [Z1; Z2; Z3]);
 endfunction
