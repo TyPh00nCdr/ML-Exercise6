@@ -7,13 +7,21 @@
 ## Sigmas: [1.0 0.5; 0.5 1.0], [1, 0.1; 0.1, 0.5], [0.25 0.3; 0.3 1], [0.9 0.4; 0.4 0.3], [1 1.5; 1.5 3]
 ## [cov (spread) x-axis, rotation; rotation, cov (spread) y-axis] <- must be symmertric i.e. rotation must be equal
 ## rotation can be negative
+## Geometrix Interpretation: https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
 function expmax
-  mu = [0 0];
-  sigma = [.9 -.4; -.4 .3];
+  mu1 = [2 2];
+  sigma1 = [5 -4; -4 6] / 10;
   
-  [X, Y] = meshgrid (linspace (-3, 3, 100));
+  mu2 = [3 2.5];
+  sigma2 = [5 4; 4 6] / 10;
+
+  [X, Y] = meshgrid (linspace (-1, 5, 100));
   XY = [X(:) Y(:)];
-  Z = mvnpdf (XY, mu, sigma);
-  Z = reshape (Z, size (X));
-  contour (X, Y, Z);
+  Z1 = mvnpdf (XY, mu1, sigma1);
+  Z1 = reshape (Z1, size (X));
+  # contour (X, Y, Z1);
+  
+  Z2 = mvnpdf (XY, mu2, sigma2);
+  Z2 = reshape (Z2, size (X));
+  contour ([X X], [Y Y], [Z1 Z2]);
 endfunction
