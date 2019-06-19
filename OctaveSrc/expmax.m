@@ -21,29 +21,31 @@ function expmax
   sigma3 = [5 4; 4 6] / 10;
   cloud3 = mvnrnd (mu3, sigma3, 100);
   
-  ax = axes ();
-  scatter (ax, cloud1(:, 1), cloud1(:, 2), "r", "x");
+  scatterplot (cloud1, "r");
+  scatterplot (cloud2, "g");
+  scatterplot (cloud3, "b");  
   
-  hold on;
+  contourplot (mu1, sigma1, "r");
+  contourplot (mu2, sigma2, "g");
+  contourplot (mu3, sigma3, "b");
   
-  scatter (ax, cloud2(:, 1), cloud2(:, 2), "g", "x");
-  scatter (ax, cloud3(:, 1), cloud3(:, 2), "b", "x");
-  
-  
-  
+  hold off
+endfunction
+
+function scatterplot (XY, color)
+  scatter (XY(:, 1), XY(:, 2), color, "x");
+  if (!ishold())   
+    hold on
+  endif;
+endfunction
+
+function contourplot (mu, sigma, color)
   [X, Y] = meshgrid (linspace (-1, 5, 100));
   XY = [X(:) Y(:)];
-  Z1 = mvnpdf (XY, mu1, sigma1);
-  Z1 = reshape (Z1, size (X));
-  contour (X, Y, Z1, 1, "r");
-  
-  Z2 = mvnpdf (XY, mu2, sigma2);
-  Z2 = reshape (Z2, size (X));
-  contour (X, Y, Z2, 1, "g");
-  
-  Z3 = mvnpdf (XY, mu3, sigma3);
-  Z3 = reshape (Z3, size (X));
-  contour (X, Y, Z3, 1, "b");
-  
-  hold off;
+  Z = mvnpdf (XY, mu, sigma);
+  Z = reshape (Z, size (X));
+  contour (X, Y, Z, 1, color);
+  if (!ishold())   
+    hold on
+  endif;
 endfunction
