@@ -63,10 +63,9 @@ endfunction
 function updatesigma (x)
   global SIGMA W MU
   for j = 1:3
-    x = (x - MU(j, :))
-    y = sum(W(j, :)' * ((x - MU(j, :)) * (x - MU(j, :))'));
-    SIGMA(:, :, j) = sum(W(j, :)' * (x - MU(j, :)) * (x - MU(j, :))') ./ sum(W(j, :));
+    SIGMA(:, :, j) = sum(W(j, :) * (x - MU(j, :)) * (x - MU(j, :))') ./ sum(W(j, :));
   end
+  disp (SIGMA);
 endfunction
 
 function estimateexp (x)
