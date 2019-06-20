@@ -9,6 +9,8 @@
 ## rotation can be negative
 ## Geometrix Interpretation: https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
 function expmax
+  clear X Y XY;
+  
   mu1 = [2 2];
   sigma1 = [5 -4; -4 6] / 10;
   cloud1 = mvnrnd (mu1, sigma1, 100);
@@ -30,6 +32,27 @@ function expmax
   contourplot (mu3, sigma3, "b");
   
   hold off
+  clear X Y XY
+endfunction
+
+function phi_j = phi (z, j)
+  phi_j =  mean (z == j);
+endfunction
+
+function mu_j = mu (z, j, x)
+  mu_j = sum ((z == j) * x) / sum ((z == j)); 
+endfunction
+
+function mu_j = mu (z, j, x)
+  mu_j = sum ((z == j) * x) / sum ((z == j)); 
+endfunction
+
+function sigma_j = sigma (z, j, x, mu)
+  sigma_j = sum ((z == j) * (x(:) - mu) * (x(:) - mu)', 3) / sum (z == j);  
+endfunction
+
+function estimate_weights (z, j, x, mu, sigma, phi)
+  
 endfunction
 
 function scatterplot (XY, color)
@@ -40,8 +63,12 @@ function scatterplot (XY, color)
 endfunction
 
 function contourplot (mu, sigma, color)
-  [X, Y] = meshgrid (linspace (-1, 5, 100));
-  XY = [X(:) Y(:)];
+  persistent X Y XY
+  if isempty(X) || isempty(Y)
+    [X, Y] = meshgrid (linspace (-1, 5, 100));
+    XY = [X(:) Y(:)];
+  endif
+
   Z = mvnpdf (XY, mu, sigma);
   Z = reshape (Z, size (X));
   contour (X, Y, Z, 1, color);
