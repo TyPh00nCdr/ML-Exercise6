@@ -9,7 +9,7 @@
 ## rotation can be negative
 ## Geometrix Interpretation: https://www.visiondummy.com/2014/04/geometric-interpretation-covariance-matrix/
 function expmax
-  clear X Y XY;
+  clear all;
   
   mu1 = [2 2];
   sigma1 = [5 -4; -4 6] / 10;
@@ -23,56 +23,84 @@ function expmax
   sigma3 = [5 4; 4 6] / 10;
   cloud3 = mvnrnd (mu3, sigma3, 100);
   
-  scatterplot (cloud1, "r");
-  scatterplot (cloud2, "g");
-  scatterplot (cloud3, "b");  
+  # scatterplot (cloud1, "r");
+  # scatterplot (cloud2, "g");
+  # scatterplot (cloud3, "b");  
   
-  contourplot (mu1, sigma1, "r");
-  contourplot (mu2, sigma2, "g");
-  contourplot (mu3, sigma3, "b");
+  # contourplot (mu1, sigma1, "r");
+  # contourplot (mu2, sigma2, "g");
+  # contourplot (mu3, sigma3, "b");
   
-  hold off
-  clear X Y XY
-endfunction
-
-function phi_j = phi (z, j)
-  phi_j =  mean (z == j);
-endfunction
-
-function mu_j = mu (z, j, x)
-  mu_j = sum ((z == j) * x) / sum ((z == j)); 
-endfunction
-
-function mu_j = mu (z, j, x)
-  mu_j = sum ((z == j) * x) / sum ((z == j)); 
-endfunction
-
-function sigma_j = sigma (z, j, x, mu)
-  sigma_j = sum ((z == j) * (x(:) - mu) * (x(:) - mu)', 3) / sum (z == j);  
-endfunction
-
-function estimate_weights (z, j, x, mu, sigma, phi)
+  global W     = zeros (3, 300);
+  global PHI   = [1 / 3, 1 / 3, 1 / 3];
+  global MU    = ones (3, 2);
+  global SIGMA = repmat (eye(2), [1, 1, 3]);
+  X = [cloud1; cloud2; cloud3];
   
+  for i = 1:20
+    maximizeparams (X);
+  end
+  
+  for j = 1:300
+    disp (max(W(:, j)));
+  end
+  
+  hold off;
+endfunction
+
+function updatephi (x)
+  global PHI W
+  PHI = mean (W);
+endfunction
+
+function updatemu (x)
+  global MU W
+  for j = 1:3
+    MU(j, :) = (sum(W(j, :)' .* x) ./ sum(W(j, :)))';
+  end
+endfunction
+
+function updatesigma (x)
+  global SIGMA W MU
+  for j = 1:3
+    x = (x - MU(j, :))
+    y = sum(W(j, :)' * ((x - MU(j, :)) * (x - MU(j, :))'));
+    SIGMA(:, :, j) = sum(W(j, :)' * (x - MU(j, :)) * (x - MU(j, :))') ./ sum(W(j, :));
+  end
+endfunction
+
+function estimateexp (x)
+  global W MU SIGMA PHI
+  for j = 1:3
+    W(j, :) = (mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j)) / sum(mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j));
+  end
+endfunction
+
+function maximizeparams (x)
+  estimateexp (x);
+  updatephi (x);
+  updatemu (x)
+  updatesigma (x);
 endfunction
 
 function scatterplot (XY, color)
   scatter (XY(:, 1), XY(:, 2), color, "x");
   if (!ishold())   
-    hold on
+    hold on;
   endif;
 endfunction
 
-function contourplot (mu, sigma, color)
+function contourplot (updatemu, sigma, color)
   persistent X Y XY
   if isempty(X) || isempty(Y)
     [X, Y] = meshgrid (linspace (-1, 5, 100));
     XY = [X(:) Y(:)];
   endif
 
-  Z = mvnpdf (XY, mu, sigma);
+  Z = mvnpdf (XY, updatemu, sigma);
   Z = reshape (Z, size (X));
   contour (X, Y, Z, 1, color);
   if (!ishold())   
-    hold on
+    hold on;
   endif;
 endfunction
