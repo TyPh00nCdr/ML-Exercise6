@@ -33,12 +33,15 @@ function expmax
   
   global W     = zeros (3, 300);
   global PHI   = [1 / 3, 1 / 3, 1 / 3];
-  global MU    = ones (3, 2);
+  global MU    = [1 2; 2 2; 3 2];
   global SIGMA = repmat (eye(2), [1, 1, 3]);
   X = [cloud1; cloud2; cloud3];
   
+  y = eig (SIGMA(:, :, 1));
+  
   for i = 1:20
     maximizeparams (X);
+    disp (i);
   end
   
   for j = 1:300
@@ -63,9 +66,12 @@ endfunction
 function updatesigma (x)
   global SIGMA W MU
   for j = 1:3
-    SIGMA(:, :, j) = sum(W(j, :) * (x - MU(j, :)) * (x - MU(j, :))') ./ sum(W(j, :));
+    y = 0;
+      for i = 1:columns(x)
+        y = y + W(j, i) * ((x(i, :) - MU(j, :)) * (x(i, :) - MU(j, :)).');
+      end
+    SIGMA(:, :, j) = y ./ sum(W(j, :));
   end
-  disp (SIGMA);
 endfunction
 
 function estimateexp (x)
