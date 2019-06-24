@@ -37,8 +37,6 @@ function expmax
   global SIGMA = repmat (eye(2), [1, 1, 3]);
   X = [cloud1; cloud2; cloud3];
   
-  y = eig (SIGMA(:, :, 1));
-  
   for i = 1:20
     maximizeparams (X);
     disp (i);
@@ -53,7 +51,7 @@ endfunction
 
 function updatephi (x)
   global PHI W
-  PHI = mean (W);
+  PHI = mean (W, 2).';
 endfunction
 
 function updatemu (x)
@@ -66,22 +64,29 @@ endfunction
 function updatesigma (x)
   global SIGMA W MU
   for j = 1:3
-    y = 0;
-      for i = 1:columns(x)
-        y = y + W(j, i) * ((x(i, :) - MU(j, :)) * (x(i, :) - MU(j, :)).');
-      end
-    SIGMA(:, :, j) = y ./ sum(W(j, :));
+    y = zeros (size (SIGMA (:, :, j)));
+    for i = 1:columns(x)
+      y = y + W(j, i) * ((x(i, :) - MU(j, :)).' * (x(i, :) - MU(j, :)));
+    end
+    c = sum(W(j, :));
+    SIGMA(:, :, j) = y / sum(W(j, :));
   end
 endfunction
 
 function estimateexp (x)
   global W MU SIGMA PHI
+  s = 0;
   for j = 1:3
-    W(j, :) = (mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j)) / sum(mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j));
-  end
+    s += mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j);
+  endfor
+  
+  for j = 1:3
+    W(j, :) = (mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j)) ./ s;
+  endfor
 endfunction
 
 function maximizeparams (x)
+  global W MU PHI SIGMA
   estimateexp (x);
   updatephi (x);
   updatemu (x)
