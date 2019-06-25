@@ -23,9 +23,9 @@ function expmax
   sigma3 = [5 4; 4 6] / 10;
   cloud3 = mvnrnd (mu3, sigma3, 100);
   
-  scatterplot (cloud1, "r");
-  scatterplot (cloud2, "g");
-  scatterplot (cloud3, "b");  
+  # scatterplot (cloud1, "r");
+  # scatterplot (cloud2, "g");
+  # scatterplot (cloud3, "b");  
   
   # contourplot (mu1, sigma1, "r");
   # contourplot (mu2, sigma2, "g");
@@ -37,13 +37,15 @@ function expmax
   global SIGMA = repmat ([1 0; 0 1], [1, 1, 3]);
   X = [cloud1; cloud2; cloud3];
   
-  for i = 1:10
-    maximizeparams (X);
-  end
+  #for i = 1:10
+  #  maximizeparams (X);
+  #end
   
-  contourplot (MU(1, :), SIGMA(:, :, 1), "b");
-  contourplot (MU(2, :), SIGMA(:, :, 2), "r");
-  contourplot (MU(3, :), SIGMA(:, :, 3), "g");
+  kmeans (X);
+  
+  #contourplot (MU(1, :), SIGMA(:, :, 1), "b");
+  #contourplot (MU(2, :), SIGMA(:, :, 2), "r");
+  #contourplot (MU(3, :), SIGMA(:, :, 3), "g");
   
   hold off;
 endfunction
@@ -71,7 +73,7 @@ function updatesigma (x)
   end
 endfunction
 
-function estimateexp (x)
+function updateweights (x)
   global W MU SIGMA PHI
   s = 0;
   for j = 1:3
@@ -86,10 +88,29 @@ endfunction
 
 function maximizeparams (x)
   global W MU PHI SIGMA
-  estimateexp (x);
+  updateweights (x);
   updatephi (x);
   updatemu (x)
   updatesigma (x);
+endfunction
+
+function kmeans (x)
+  global MU 
+  c = zeros (300, 1);
+  mu = num2cell (MU, 2);
+  
+  for loop = 1:20
+    for i = 1:rows(x)
+      [minVal, c(i)] = min (cellfun (@(mu_j) norm (x(i, :) - mu_j)^2, mu));
+    endfor
+    for j = 1:size(mu)
+      mu(j) = sum ((c(:) == j) .* x) / sum (c(:) == j);
+    endfor
+  endfor
+  
+  labels = repelem ([2 3 1], 100).';
+  disp (["Wrongly classified points: ", num2str(rows(c(c != labels)))]);
+  
 endfunction
 
 function scatterplot (XY, color)
