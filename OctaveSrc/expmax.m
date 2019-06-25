@@ -23,9 +23,9 @@ function expmax
   sigma3 = [5 4; 4 6] / 10;
   cloud3 = mvnrnd (mu3, sigma3, 100);
   
-  # scatterplot (cloud1, "r");
-  # scatterplot (cloud2, "g");
-  # scatterplot (cloud3, "b");  
+  scatterplot (cloud1, "r");
+  scatterplot (cloud2, "g");
+  scatterplot (cloud3, "b");  
   
   # contourplot (mu1, sigma1, "r");
   # contourplot (mu2, sigma2, "g");
@@ -34,17 +34,16 @@ function expmax
   global W     = zeros (3, 300);
   global PHI   = [1 / 3, 1 / 3, 1 / 3];
   global MU    = [1 2; 2 2; 3 2];
-  global SIGMA = repmat (eye(2), [1, 1, 3]);
+  global SIGMA = repmat ([1 0; 0 1], [1, 1, 3]);
   X = [cloud1; cloud2; cloud3];
   
-  for i = 1:20
+  for i = 1:10
     maximizeparams (X);
-    disp (i);
   end
   
-  for j = 1:300
-    disp (max(W(:, j)));
-  end
+  contourplot (MU(1, :), SIGMA(:, :, 1), "b");
+  contourplot (MU(2, :), SIGMA(:, :, 2), "r");
+  contourplot (MU(3, :), SIGMA(:, :, 3), "g");
   
   hold off;
 endfunction
@@ -65,10 +64,9 @@ function updatesigma (x)
   global SIGMA W MU
   for j = 1:3
     y = zeros (size (SIGMA (:, :, j)));
-    for i = 1:columns(x)
+    for i = 1:rows(x)
       y = y + W(j, i) * ((x(i, :) - MU(j, :)).' * (x(i, :) - MU(j, :)));
     end
-    c = sum(W(j, :));
     SIGMA(:, :, j) = y / sum(W(j, :));
   end
 endfunction
@@ -83,6 +81,7 @@ function estimateexp (x)
   for j = 1:3
     W(j, :) = (mvnpdf(x, MU(j, :), SIGMA(:, :, j)) * PHI(j)) ./ s;
   endfor
+  c = sum(W);
 endfunction
 
 function maximizeparams (x)
@@ -109,7 +108,7 @@ function contourplot (updatemu, sigma, color)
 
   Z = mvnpdf (XY, updatemu, sigma);
   Z = reshape (Z, size (X));
-  contour (X, Y, Z, 1, color);
+  contour (X, Y, Z, color);
   if (!ishold())   
     hold on;
   endif;
