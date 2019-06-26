@@ -32,7 +32,6 @@ function expmax
   scatterplot (cloud1, "r");
   scatterplot (cloud2, "g");
   scatterplot (cloud3, "b");
-    
   
   # contourplot (mu1, sigma1, "r");
   # contourplot (mu2, sigma2, "g");
@@ -59,6 +58,8 @@ function expmax
   subplot (2, 1, 2);
   plot(1:ITERATIONS, err);
   title("Misclassified Points");
+  ylabel ("Misclassified Points");
+  xlabel ("Iterations");
   
   # Reset globals
   MU    = [1 2; 2 2; 3 2];
@@ -134,16 +135,21 @@ function kmeans (x)
   scatterplot (x(1:100, :), "r");
   scatterplot (x(101:200, :), "g");
   scatterplot (x(201:300, :), "b"); 
-  scatter (cell2mat(mu)(:, 1), cell2mat(mu)(:, 2),  "k", "filled");
+  p = scatter (cell2mat(mu)(:, 1), cell2mat(mu)(:, 2),  "k", "filled");
+  legend ([p], "Centroids", "location", "northwest");
   hold off;
   
   subplot(2, 2, 3);
   plot(1:ITERATIONS, J);
   title("Distortion Function");
+  ylabel ("J");
+  xlabel ("Iterations");
   
   subplot(2, 2, 4);
   plot(1:ITERATIONS, err);
   title("Misclassified Points");
+  ylabel ("Misclassified Points");
+  xlabel ("Iterations");
 endfunction
 
 function scatterplot (XY, color)
