@@ -11,6 +11,8 @@
 function expmax
   clear all;
   
+  global ITERATIONS = 50;
+  
   mu1 = [2 2];
   sigma1 = [5 -4; -4 6] / 10;
   cloud1 = mvnrnd (mu1, sigma1, 100);
@@ -23,9 +25,14 @@ function expmax
   sigma3 = [5 4; 4 6] / 10;
   cloud3 = mvnrnd (mu3, sigma3, 100);
   
-  # scatterplot (cloud1, "r");
-  # scatterplot (cloud2, "g");
-  # scatterplot (cloud3, "b");  
+  labels = repelem ([2 3 1], 100).';
+  
+  figure(1);
+  subplot(2, 1, 1);
+  scatterplot (cloud1, "r");
+  scatterplot (cloud2, "g");
+  scatterplot (cloud3, "b");
+    
   
   # contourplot (mu1, sigma1, "r");
   # contourplot (mu2, sigma2, "g");
@@ -36,18 +43,27 @@ function expmax
   global MU    = [1 2; 2 2; 3 2];
   global SIGMA = repmat ([1 0; 0 1], [1, 1, 3]);
   X = [cloud1; cloud2; cloud3];
+  err = [0];
   
-  #for i = 1:10
-  #  maximizeparams (X);
-  #end
+  for i = 1:ITERATIONS
+    maximizeparams (X);
+    [maxval, c] = max(W, [], 1);
+    err(i) = columns(c(c != labels.'));
+  end
   
-  kmeans (X);
-  
-  #contourplot (MU(1, :), SIGMA(:, :, 1), "b");
-  #contourplot (MU(2, :), SIGMA(:, :, 2), "r");
-  #contourplot (MU(3, :), SIGMA(:, :, 3), "g");
-  
+  contourplot (MU(1, :), SIGMA(:, :, 1), "b");
+  contourplot (MU(2, :), SIGMA(:, :, 2), "r");
+  contourplot (MU(3, :), SIGMA(:, :, 3), "g");
   hold off;
+  
+  subplot (2, 1, 2);
+  plot(1:ITERATIONS, err);
+  title("Misclassified Points");
+  
+  # Reset globals
+  MU    = [1 2; 2 2; 3 2];
+  SIGMA = repmat ([1 0; 0 1], [1, 1, 3]);
+  kmeans (X);
 endfunction
 
 function updatephi (x)
@@ -95,22 +111,39 @@ function maximizeparams (x)
 endfunction
 
 function kmeans (x)
-  global MU 
+  global MU ITERATIONS
   c = zeros (300, 1);
   mu = num2cell (MU, 2);
+  J = [0];
+  labels = repelem ([2 3 1], 100).';
+  err = [0];
   
-  for loop = 1:20
+  for loop = 1:ITERATIONS
     for i = 1:rows(x)
       [minVal, c(i)] = min (cellfun (@(mu_j) norm (x(i, :) - mu_j)^2, mu));
     endfor
     for j = 1:size(mu)
       mu(j) = sum ((c(:) == j) .* x) / sum (c(:) == j);
     endfor
+    J(loop) = sum(cellfun (@(x_i, c_i) norm (x_i - mu{c_i})^2, num2cell(x, 2), num2cell(c)));
+    err(loop) = rows(c(c != labels));
   endfor
   
-  labels = repelem ([2 3 1], 100).';
-  disp (["Wrongly classified points: ", num2str(rows(c(c != labels)))]);
+  figure(2);
+  subplot(2, 2, [1 2]);
+  scatterplot (x(1:100, :), "r");
+  scatterplot (x(101:200, :), "g");
+  scatterplot (x(201:300, :), "b"); 
+  scatter (cell2mat(mu)(:, 1), cell2mat(mu)(:, 2),  "k", "filled");
+  hold off;
   
+  subplot(2, 2, 3);
+  plot(1:ITERATIONS, J);
+  title("Distortion Function");
+  
+  subplot(2, 2, 4);
+  plot(1:ITERATIONS, err);
+  title("Misclassified Points");
 endfunction
 
 function scatterplot (XY, color)
