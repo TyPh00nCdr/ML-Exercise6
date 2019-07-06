@@ -135,8 +135,16 @@ function kmeans (x)
   scatterplot (x(1:100, :), "r");
   scatterplot (x(101:200, :), "g");
   scatterplot (x(201:300, :), "b"); 
-  p = scatter (cell2mat(mu)(:, 1), cell2mat(mu)(:, 2),  "k", "filled");
-  legend ([p], "Centroids", "location", "northwest");
+  blue = convhull (x(c == 1, 1), x(c == 1, 2));
+  red = convhull (x(c == 2, 1), x(c == 2, 2));
+  green = convhull (x(c == 3, 1), x(c == 3, 2));
+  plot (x(c == 2, 1)(red), x(c == 2, 2)(red), "r-");
+  plot (x(c == 3, 1)(green), x(c == 3, 2)(green), "g-");
+  plot (x(c == 1, 1)(blue), x(c == 1, 2)(blue), "b-");
+  scatter (cell2mat(mu)(:, 1), cell2mat(mu)(:, 2),  "k", "filled");
+  legend ("actually red", "actually green", "actually blue", 
+          "classified red hull", "classified green hull", "classified blue hull", 
+          "centroids", "location", "bestoutside");
   hold off;
   
   subplot(2, 2, 3);
@@ -162,7 +170,7 @@ endfunction
 function contourplot (updatemu, sigma, color)
   persistent X Y XY
   if isempty(X) || isempty(Y)
-    [X, Y] = meshgrid (linspace (-1, 5, 100));
+    [X, Y] = meshgrid (linspace (-2, 6, 100));
     XY = [X(:) Y(:)];
   endif
 
